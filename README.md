@@ -12,10 +12,12 @@ We present SynthCLIP, a novel framework for training CLIP models with entirely s
 ## Citation
 
 ```
- @article{hammoud2024synthclip,
-  title={{SynthCLIP: Are We Ready For a Fully Synthetic CLIP Training?}},
-  author={Hammoud, Hasan and Itani, Hani and Pizzati, Fabio and Torr, Philip and Bibi, Adel and Ghanem, Bernard},
-  journal={arXiv},
-  year={2024}
+@misc{hammoud2024synthclip,
+      title={SynthCLIP: Are We Ready for a Fully Synthetic CLIP Training?}, 
+      author={Hasan Abed Al Kader Hammoud and Hani Itani and Fabio Pizzati and Philip Torr and Adel Bibi and Bernard Ghanem},
+      year={2024},
+      eprint={2402.01832},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
 }
 ```
