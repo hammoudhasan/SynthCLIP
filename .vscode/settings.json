@@ -1,0 +1,34 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+  "files.exclude": {
+      "out": false, // set this to true to hide the "out" folder with the compiled JS files
+      "dist": false // set this to true to hide the "dist" folder with the compiled JS files
+  },
+  "search.exclude": {
+      "out": true, // set this to false to include "out" folder in search results
+      "dist": true, // set this to false to include "dist" folder in search results
+      ".venv": true,
+      ".nox": true
+  },
+  // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
+  "typescript.tsc.autoDetect": "off",
+  "python.formatting.provider": "none",
+  "[typescript]": {
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+          "source.organizeImports": true
+      }
+  },
+  "[python]": {
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+          "source.organizeImports": true
+    },
+    "editor.defaultFormatter": "ms-python.black-formatter"
+},
+"[python][typescript]": {
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    }
+}
+}
