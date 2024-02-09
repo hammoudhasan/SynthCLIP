@@ -24,8 +24,9 @@ def balance_sampling(matched_entry_ids, entry_prob):
 
     return False
 
+
 def main(args):
-    
+
     captions_with_count_folder = args.captions_with_count_folder
     balanced_captions_folder = args.balanced_captions_folder
     metadata_filepath = args.metadata_filepath
@@ -37,10 +38,12 @@ def main(args):
         metadata = json.load(f)
 
     entry_count = np.zeros(shape=(len(metadata),), dtype=np.uint64)
-    
+
     D = []
     captions = set()
-    json_files = [f for f in os.listdir(captions_with_count_folder) if f.endswith(".json")]
+    json_files = [
+        f for f in os.listdir(captions_with_count_folder) if f.endswith(".json")
+    ]
     print(f"There are {len(json_files)} json files.")
 
     for file in json_files:
@@ -58,7 +61,9 @@ def main(args):
 
     np.save(os.path.join(balanced_captions_folder, "entry_count.npy"), entry_count)
 
-    with open(f"{balanced_captions_folder}/all_dedup_captions_with_count.json", "w") as f:
+    with open(
+        f"{balanced_captions_folder}/all_dedup_captions_with_count.json", "w"
+    ) as f:
         json.dump(D, f)
 
     print(f"There are {len(D)} unique captions")
@@ -73,18 +78,23 @@ def main(args):
 
     print(f"Total of {len(D_star)} captions curated.")
 
-    with open(os.path.join(balanced_captions_folder, f"curated_captions_with_count_{t}.json"), "w") as fw:
+    with open(
+        os.path.join(balanced_captions_folder, f"curated_captions_with_count_{t}.json"),
+        "w",
+    ) as fw:
         json.dump(D_star, fw)
-    
+
     curated_captions = [rec[0] for rec in D_star]
-    with open(os.path.join(balanced_captions_folder, f"curated_captions_{t}.json"), "w") as fw:
+
+    with open(
+        os.path.join(balanced_captions_folder, f"curated_captions.json"), "w"
+    ) as fw:
         json.dump(curated_captions, fw)
 
-if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(
-        description="Arguments for balancing captions."
-    )
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Arguments for balancing captions.")
     parser.add_argument(
         "--captions_with_count_folder",
         type=str,
@@ -111,5 +121,5 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    
+
     main(args)

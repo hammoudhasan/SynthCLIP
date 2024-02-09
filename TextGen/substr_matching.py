@@ -20,15 +20,14 @@ from tqdm import tqdm
 
 spaced_metadata = None
 
+
 def spacing(text):
     puncts_to_wrap = [",", ".", ";", ":", "?", "!", "`"]
     chars_to_space = ["\t", "\n", "\r"]
 
     spaced_text = f" {text} "
     for punct_to_wrap in puncts_to_wrap:
-        spaced_text = spaced_text.replace(
-            punct_to_wrap, f" {punct_to_wrap} "
-        )
+        spaced_text = spaced_text.replace(punct_to_wrap, f" {punct_to_wrap} ")
     for char_to_space in chars_to_space:
         spaced_text = spaced_text.replace(char_to_space, " ")
     return spaced_text
@@ -60,31 +59,37 @@ def main(args):
     num_processes = int(args.num_processes)
 
     os.makedirs(captions_with_count_folder, exist_ok=True)
-    
+
     with open(metadata_filepath, "r") as f:
         metadata = json.load(f)
-    
-    json_files = [f for f in os.listdir(synthetic_captions_folder) if f.endswith(".json")]
+
+    json_files = [
+        f for f in os.listdir(synthetic_captions_folder) if f.endswith(".json")
+    ]
     print(f"There are {len(json_files)} json files.")
 
     for file in json_files:
         with open(os.path.join(synthetic_captions_folder, file), "r") as f:
             parsed_json = json.load(f)
-        
-        raw_text = [text.replace('"', '').strip(' ').strip('\n') for text in parsed_json if '\n' not in text]
-        
+
+        raw_text = [
+            text.replace('"', "").strip(" ").strip("\n")
+            for text in parsed_json
+            if "\n" not in text
+        ]
+
         pool = multiprocessing.Pool(num_processes)
-        text_with_count = pool.starmap(dist_func, tqdm(zip(raw_text, repeat(metadata)), total=len(raw_text)))
+        text_with_count = pool.starmap(
+            dist_func, tqdm(zip(raw_text, repeat(metadata)), total=len(raw_text))
+        )
 
         with open(os.path.join(captions_with_count_folder, file), "w") as f:
             parsed_json = json.dump(text_with_count, f)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(
-        description="Arguments for substring matching."
-    )
+    parser = argparse.ArgumentParser(description="Arguments for substring matching.")
     parser.add_argument(
         "--synthetic_captions_folder",
         type=str,
@@ -111,5 +116,5 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    
+
     main(args)

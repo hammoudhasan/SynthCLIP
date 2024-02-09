@@ -1,0 +1,6 @@
+einops
+omegaconf
+pytorch-lightning==1.7.7
+torchmetrics==0.11.4
+kornia
+open-clip-torch

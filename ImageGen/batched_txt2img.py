@@ -1,30 +1,12 @@
-# Copyright 2023 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import argparse
-import glob
 import json
 import os
 import time
 from contextlib import nullcontext
-from itertools import islice
 
-import cv2
 import numpy as np
 import torch
-from einops import rearrange
-from imwatermark import WatermarkEncoder
+from huggingface_hub import snapshot_download
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.models.diffusion.dpm_solver import DPMSolverSampler
 from ldm.models.diffusion.plms import PLMSSampler
@@ -33,35 +15,39 @@ from omegaconf import OmegaConf
 from PIL import Image
 from pytorch_lightning import seed_everything
 from torch import autocast
-from torch.utils.data import DataLoader, Dataset
-from torchvision.utils import make_grid
-from tqdm import tqdm, trange
 
 torch.set_grad_enabled(False)
 
-def get_rewrites_from_folder(rewrites_folder):
-    json_files = glob.glob(os.path.join(rewrites_folder, f"*.json"))
-    file_numbers = [int(file.split("/")[-1].split(".")[0]) for file in json_files]
-    json_files = [file for _, file in sorted(zip(file_numbers, json_files))]
+if not os.path.isdir("checkpoints/stable-diffusion-v1-5"):
 
-    text_list = []
+    os.makedirs("checkpoints/stable-diffusion-v1-5", exist_ok=True)
 
-    for file in json_files:
-        with open(file, "r") as f:
-            text_list.extend(json.load(f))
+    snapshot_download(
+        repo_id="runwayml/stable-diffusion-v1-5",
+        local_dir="checkpoints/stable-diffusion-v1-5",
+        local_dir_use_symlinks=False,
+        cache_dir="./cache/",
+        allow_patterns=["v1-5-pruned-emaonly.ckpt"],
+    )
 
-    text_list = [text.strip(" ").strip("\n").replace('"', "").replace('\t', ' ').replace('\r', ' ').replace('\n', ' ') for text in text_list]
-
-    return text_list
 
 def get_rewrites_from_file(captions_file):
 
     with open(captions_file, "r") as f:
         captions = json.load(f)
 
-    captions = [text.strip(" ").strip("\n").replace('"', "").replace('\t', ' ').replace('\r', ' ').replace('\n', ' ') for text in captions]
+    captions = [
+        text.strip(" ")
+        .strip("\n")
+        .replace('"', "")
+        .replace("\t", " ")
+        .replace("\r", " ")
+        .replace("\n", " ")
+        for text in captions
+    ]
 
     return captions
+
 
 def load_model_from_config(config, ckpt, device=torch.device("cuda"), verbose=False):
     print(f"Loading model from {ckpt}")
@@ -87,6 +73,7 @@ def load_model_from_config(config, ckpt, device=torch.device("cuda"), verbose=Fa
         raise ValueError(f"Incorrect device name. Received: {device}")
     model.eval()
     return model
+
 
 class StableGenerator(object):
 
@@ -114,7 +101,9 @@ class StableGenerator(object):
         self.shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
 
         # precision scope
-        self.precision_scope = autocast if opt.precision == "autocast" or opt.bf16 else nullcontext
+        self.precision_scope = (
+            autocast if opt.precision == "autocast" or opt.bf16 else nullcontext
+        )
 
     def generate(self, prompts, n_sample_per_prompt):
         with torch.no_grad():
@@ -134,23 +123,27 @@ class StableGenerator(object):
                     batch_c = batch_c.reshape(bsz, batch_c.shape[-2], batch_c.shape[-1])
 
                     # sampling
-                    samples_ddim, _ = self.sampler.sample(S=self.opt.steps,
-                                                          conditioning=batch_c,
-                                                          batch_size=bsz,
-                                                          shape=self.shape,
-                                                          verbose=False,
-                                                          unconditional_guidance_scale=self.opt.scale,
-                                                          unconditional_conditioning=self.batch_uc,
-                                                          eta=self.opt.ddim_eta,
-                                                          x_T=None)     # no fixed start code
+                    samples_ddim, _ = self.sampler.sample(
+                        S=self.opt.steps,
+                        conditioning=batch_c,
+                        batch_size=bsz,
+                        shape=self.shape,
+                        verbose=False,
+                        unconditional_guidance_scale=self.opt.scale,
+                        unconditional_conditioning=self.batch_uc,
+                        eta=self.opt.ddim_eta,
+                        x_T=None,
+                    )  # no fixed start code
 
                     x_samples_ddim = self.model.decode_first_stage(samples_ddim)
-                    x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                    x_samples_ddim = torch.clamp(
+                        (x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0
+                    )
                     x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
-                    # x_samples_ddim = x_samples_ddim.cpu().numpy()
-                    x_samples_ddim = 255. * x_samples_ddim
+                    x_samples_ddim = 255.0 * x_samples_ddim
 
                     return x_samples_ddim
+
 
 def batched_sd_generation(args, rewrites_list):
 
@@ -161,15 +154,17 @@ def batched_sd_generation(args, rewrites_list):
     # get the generator
     generator = StableGenerator(model, args)
 
-    os.makedirs(os.path.join(args.save_path, str(args.chunk_idx)), exist_ok=True)
+    os.makedirs(os.path.join(args.images_save_path, str(args.chunk_idx)), exist_ok=True)
 
     for i in range(args.start_idx, args.end_idx, args.batch_size):
 
         rewrites_batch = rewrites_list[i : min(i + args.batch_size, args.end_idx)]
-        
+
         start = time.time()
 
-        images = generator.generate(rewrites_batch, n_sample_per_prompt=args.num_images_per_prompt)
+        images = generator.generate(
+            rewrites_batch, n_sample_per_prompt=args.num_images_per_prompt
+        )
 
         image_names = [
             f"{k}_{j}"
@@ -182,16 +177,21 @@ def batched_sd_generation(args, rewrites_list):
             img = Image.fromarray(x_sample.astype(np.uint8))
             if args.save_resolution != args.H:
                 img = img.resize((args.save_resolution, args.save_resolution))
-            img.save(os.path.join(args.save_path, str(args.chunk_idx), f"{image_names[j]}.jpeg"))
+            img.save(
+                os.path.join(
+                    args.images_save_path, str(args.chunk_idx), f"{image_names[j]}.jpeg"
+                )
+            )
 
         print(
             f"It took {time.time()-start} seconds to generate and save {len(rewrites_batch)} images."
         )
 
-def main(opt):
+
+def main(args):
     seed_everything(args.seed)
-    # rewrites_list = get_prompts(args.captions_file)
-    rewrites_list = get_rewrites_from_file(args.captions_file)
+
+    rewrites_list = get_rewrites_from_file(args.balanced_captions_filepath)
 
     assert len(rewrites_list) > 0
 
@@ -206,18 +206,19 @@ def main(opt):
 
     batched_sd_generation(args, rewrites_list)
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Arguments for SDgeneration.")
+    parser = argparse.ArgumentParser(description="Arguments for SD generation.")
 
     # General args
     parser.add_argument(
-        "--captions_file",
+        "--balanced_captions_filepath",
         required=True,
         type=str,
         help="Path to original captions file",
     )
     parser.add_argument(
-        "--save_path",
+        "--images_save_path",
         type=str,
         required=True,
         help="Name of the folder where the images are going to be saved",
@@ -252,12 +253,12 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--plms",
-        action='store_true',
+        action="store_true",
         help="use plms sampling",
     )
     parser.add_argument(
         "--dpm",
-        action='store_true',
+        action="store_true",
         help="use DPM (2) sampler",
     )
     parser.add_argument(
@@ -293,13 +294,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config",
         type=str,
-        default="../configs/stable-diffusion/v1-inference.yaml",
+        default="configs/stable-diffusion/v1-inference.yaml",
         help="path to config which constructs model",
     )
     parser.add_argument(
         "--ckpt",
         type=str,
-        default="/ibex/ai/home/itanh0b/stablediffusion/SDv1.5/v1-5-pruned-emaonly.ckpt",
+        default="checkpoints/stable-diffusion-v1-5/v1-5-pruned-emaonly.ckpt",
         help="path to the model",
     )
     parser.add_argument(
@@ -313,18 +314,18 @@ if __name__ == "__main__":
         type=str,
         help="evaluate at this precision",
         choices=["full", "autocast"],
-        default="autocast"
+        default="autocast",
     )
     parser.add_argument(
         "--device",
         type=str,
         help="Device on which Stable Diffusion will be run",
         choices=["cpu", "cuda"],
-        default="cuda"
+        default="cuda",
     )
     parser.add_argument(
         "--bf16",
-        action='store_true',
+        action="store_true",
         help="Use bfloat16",
     )
     # Batching args
@@ -343,4 +344,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args)
-
