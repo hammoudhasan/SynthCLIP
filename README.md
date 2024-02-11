@@ -26,6 +26,8 @@ pip install -r requirements.txt
 
 ## Trained Models:
 - ViT-B/16 Trained on SynthCI-30M can be found [here](https://drive.google.com/drive/folders/1RP50tKvDPaiueYnfkh2gpHfUMAJAHwJo?usp=sharing).
+- ViT-B/16 Trained on CC12M can be found [here](https://drive.google.com/drive/folders/1WwDWTAG6U9_CWhlPjChIJ6YHsQHrrLKF?usp=sharing).
+- 
 ## Citation
 
 ```
