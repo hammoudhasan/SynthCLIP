@@ -23,6 +23,9 @@ pip install xformers==0.0.23.post1 --index-url https://download.pytorch.org/whl/
 
 pip install -r requirements.txt
 ```
+
+## Trained Models:
+- ViT-B/16 Trained on SynthCI-30M can be found [here](https://drive.google.com/drive/folders/1RP50tKvDPaiueYnfkh2gpHfUMAJAHwJo?usp=sharing).
 ## Citation
 
 ```
