@@ -24,7 +24,7 @@
 🔥 **Stay tuned for updates, and don't forget to star this repo for the latest on SynthCLIP!** 🔥
 
 </div>
-
+   
 ## 📜 Abstract
 We present SynthCLIP, a novel framework for training CLIP models with entirely synthetic text-image pairs, significantly departing from previous methods relying on real data. Leveraging recent text-to-image (TTI) generative networks and large language models (LLM), we are able to generate synthetic datasets of images and corresponding captions at any scale, with no human intervention. With training at scale, SynthCLIP achieves performance comparable to CLIP models trained on real datasets. We also introduce SynthCI-30M, a purely synthetic dataset comprising 30 million captioned images.
 
@@ -48,7 +48,28 @@ pip install xformers==0.0.23.post1 --index-url https://download.pytorch.org/whl/
 pip install -r requirements.txt
 ```
 
-### 📦 Trained Models
+To add a new section to your README that explains the process and structure of your project, including the specific order of operations and the README files in different directories, you might format it like this:
+
+
+## 📁 Project Structure and Execution Order
+
+Our project is organized into three main folders, each dedicated to a specific stage in the SynthCLIP pipeline. Inside each folder, you'll find a detailed `README.md` file that provides instructions on how to run the code for that stage.
+
+### Folders and Their Functions:
+1. **`TextGen`**: This folder contains all the necessary code to generate synthetic text data. Begin here to start the pipeline process. 
+
+2. **`ImageGen`**: After generating the text, move on to this folder. It uses the synthetic text data to generate corresponding synthetic images. 
+
+3. **`Training`**: The final stage of the pipeline. Once you have your synthetic text-image pairs, this folder contains the code to train the SynthCLIP model. 
+
+### Pipeline Overview:
+To successfully use SynthCLIP, follow the pipeline in the order mentioned:
+- **Generate Text** ➡️ Start with the `TextGen` folder.
+- **Generate Images** ➡️ Proceed to `ImageGen` with your synthetic text.
+- **Train the Model** ➡️ Finally, use the `Training` folder to train SynthCLIP with your synthetic text-image pairs.
+
+
+## 📦 Trained Models
 Jumpstart your experiments with our pre-trained models:
 
 - **ViT-B/16** Trained on **SynthCI-10M** ➡️ [Download](https://drive.google.com/drive/folders/1sBnbczyDJUuGMKDOYeN0cOHYcq5L5xhr?usp=sharing)
