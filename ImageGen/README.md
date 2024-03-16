@@ -33,4 +33,6 @@ python batched_txt2img.py --steps 50 \
 
 - `--chunk_size`: Number of images per chunk.
 
+
+#### **Acknowledgement:** Parts of the image generation code were adopted from [StableRep](https://github.com/google-research/syn-rep-learn/tree/main/StableRep).
 ---
