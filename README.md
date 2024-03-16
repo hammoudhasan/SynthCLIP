@@ -68,6 +68,20 @@ To successfully use SynthCLIP, follow the pipeline in the order mentioned:
 - **Generate Images** ➡️ Proceed to `ImageGen` with your synthetic text.
 - **Train the Model** ➡️ Finally, use the `Training` folder to train SynthCLIP with your synthetic text-image pairs.
 
+## 🤗 SynthCI 30M Dataset Download
+
+Our dataset, SynthCI 30M, containing 30M image-caption pairs is hosted on [HuggingFace](https://huggingface.co/datasets/hammh0a/SynthCLIP). To download the dataset using HuggingFace Client please ensure that you have the huggingface-cli module installed by running:
+```
+pip install -U "huggingface_hub[cli]"
+```
+The dataset could then be installed using `huggingface-cli download hammh0a/SynthCLIP --repo-type dataset`.
+
+Alternatively, the dataset could be loaded using HuggingFace `datasets` library in Python as follows:
+
+```
+from datasets import load_dataset
+dataset = load_dataset('hammh0a/SynthCLIP')
+```
 
 ## 📦 Trained Models
 Jumpstart your experiments with our pre-trained models:
