@@ -1,9 +1,9 @@
 
-## 🎨 Image Generation with `batched_txt2img.py`
+# 🎨 Image Generation with `batched_txt2img.py`
 
 Below is a guide on how to use the command, along with detailed explanations of each parameter for our image generation code. 
 
-### **Command Usage**
+## **Command Usage**
 
 Execute the following command in your terminal to image generation:
 
@@ -17,7 +17,7 @@ python batched_txt2img.py --steps 50 \
                           --chunk_size 1000 \
 ```
 
-### 📖 **Parameters Explained**
+## 📖 **Parameters Explained**
 
 - `--steps 50`: Diffusion steps.
 
