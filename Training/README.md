@@ -47,4 +47,6 @@ python run_with_submitit.py \
 - `--timeout`: Timeout in minutes for the job.
 - `--gpu_type`: Type of GPU to use.
 - `--wandb`: Enables logging to Weights & Biases for experiment tracking.
+
+#### **Acknowledgement:** Parts of the image generation code were adopted from [SLIP](https://github.com/facebookresearch/SLIP).
 ---
