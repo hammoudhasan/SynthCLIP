@@ -91,6 +91,23 @@ Jumpstart your experiments with our pre-trained models:
 - **ViT-B/16** Trained on **SynthCI-30M** ➡️ [Download](https://drive.google.com/drive/folders/1RP50tKvDPaiueYnfkh2gpHfUMAJAHwJo?usp=sharing)
 - **ViT-B/16** Trained on **CC12M** ➡️ [Download](https://drive.google.com/drive/folders/1WwDWTAG6U9_CWhlPjChIJ6YHsQHrrLKF?usp=sharing)
 
+You can load and use the pretrained model using the code below:
+
+```
+from models import CLIP_VITB16
+import torch
+
+# load model instance
+model = torch.nn.DataParallel(CLIP_VITB16())
+
+# load checkpoint
+checkpoint_path = "./checkpoint_best.pt"
+checkpoint = torch.load(checkpoint_path, map_location="cpu")
+load_status = model.load_state_dict(checkpoint["state_dict"])
+
+print(load_status)
+```
+
 ## 📖 Citation
 If you find SynthCLIP useful in your research, please consider citing:
 
