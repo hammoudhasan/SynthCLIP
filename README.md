@@ -107,6 +107,7 @@ load_status = model.load_state_dict(checkpoint["state_dict"])
 
 print(load_status)
 ```
+_New:_ The models can be found on [HuggingFace](https://huggingface.co/collections/hammh0a/synthclip-67cd946f99a9fb6582e39939).
 
 ## 📖 Citation
 If you find SynthCLIP useful in your research, please consider citing:
